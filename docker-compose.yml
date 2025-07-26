@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  backend:
+    build: ./backend
+    container_name: ata-backend
+    command: gunicorn backend.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - elasticsearch
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=your-secret-key
+      - ALLOWED_HOSTS=*
+      - DATABASE_URL=sqlite:///db.sqlite3
+
+  frontend:
+    build: ./frontend
+    container_name: ata-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    container_name: ata-es
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
